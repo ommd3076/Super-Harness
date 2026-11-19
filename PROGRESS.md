@@ -1,7 +1,18 @@
 # Super Harness progress
 
-- Active branch is `feat/super-harness-ui-foundation` in `/workspace/super-harness`.
-- The Cloud environment is running and Node 24.22.1 and npm 11.9.0 are available. No checkout was mounted. The connected GitHub installation returned no accessible matching repository.
-- Private repository creation reached GitHub and failed with `Resource not accessible by integration (createRepository)`. No remote or push has been verified.
-- Stack is Vite, React, TypeScript and browser-local fixture playback. Source provenance, runtime, Study and environment surfaces have independent owners.
-- Resume from the active branch. Run `npm ci && npm run build`. Once GitHub repository creation is available, create the private repository, add `origin`, push the active branch and compare the remote SHA with `git rev-parse HEAD`.
+## Branch and remote
+
+- The checkout is `/workspace/super-harness`. The active branch is `feat/super-harness-ui-foundation`.
+- The user supplied [ommd3076/Super-Harness](https://github.com/ommd3076/Super-Harness). The installation reports push access. Git reached the empty remote and accepted a branch-creation dry run.
+- To verify the published revision, compare `git rev-parse HEAD` with `git ls-remote origin refs/heads/feat/super-harness-ui-foundation`.
+
+## Implemented
+
+- React, TypeScript and Vite shell with browser-local tabs, conversation history, drafts, model preferences, settings and inspector.
+- Typed declarative runtime with validated nested layouts, controls, events, per-message state and a fixed bundled widget vocabulary.
+- Ten bundled examples across Chat, Study, Workspace and Research, plus a local Live simulation. Source component provenance is tracked in [the manifest](docs/component-manifest.md).
+- Cloud Vite server runs on port 4173. Headless Chromium scenarios and viewport screenshots use `npm run test:browser`.
+
+## Resume
+
+Run `npm ci`, start the preview with `npm run dev -- --port 4173`, then run lint, typecheck, build and browser tests. Verify the remote branch after each push. Review `docs/component-manifest.md` for source production coverage. All demo data and actions stay in browser state. External service adapters are future work.

@@ -3,6 +3,17 @@ import { IntelligentUI } from './runtime';
 import { Study, studyScenes } from './study';
 import { Workspace, Research, Live } from './environments';
 import type { Area } from './session';
+import { UpstreamReportTools } from './upstream/ReportTools';
+import { UpstreamCode, UpstreamContext, UpstreamReview, UpstreamTasks, UpstreamTools } from './upstream/ReferenceKit';
+
+const reviewQuestions = [
+  {q:'Review the measurement brief',type:'radio',options:['Approve this local draft','Request changes']},
+] as const;
+const taskRows = [
+  {key:'map',label:'Scope the service',amount:'2 signals',status:'done',details:[{label:'Identified traffic and error rates',meta:'Local sample'}]},
+  {key:'review',label:'Review comparison window',amount:'1 decision',status:'done',details:[{label:'Prepared a local approval',meta:'Ready'}]},
+] as const;
+
 
 type SceneProps = {area?:Area; scene?:string; sessionId:string; instanceId:string; voiceStyle?:'fluid'|'matrix';onInspect:(detail:{title:string;body:string})=>void};
 const measurement = {
@@ -26,7 +37,16 @@ function Mixed({sessionId,instanceId,onInspect}:SceneProps) {
   return <div className="mixed-scene">
     <IntelligentUI definition={measurement} sessionId={sessionId} instanceId={instanceId}/>
     <Workspace sessionId={sessionId+':'+instanceId} scene="architecture" onInspect={onInspect}/>
-    <section className="iu-card" aria-label="Draft approval"><strong>Review the measurement brief</strong><p>Save a local decision for the proposed comparison window.</p><div className="iu-row"><button className="iu-button" type="button" onClick={()=>choose('Approved in this demo')}>Approve draft</button><button className="iu-button" type="button" onClick={()=>choose('Changes requested')}>Request changes</button></div>{decision&&<p role="status">{decision}</p>}</section>
+    <div className="reference-section">
+      <UpstreamCode filename="queries/error-rate.promql" lines={['sum(rate(http_requests_total{status=~"5.."}[5m]))', '/ sum(rate(http_requests_total[5m]))']}/>
+      <UpstreamContext labels={{header:'Measurement context',count:'1'}} chunks={[{title:'Request counters',chars:'Local fixture',body:'Compare the 5xx counter with all requests over the same window.',source:'Service telemetry fixture',badge:'Example',tone:'green'}]}/>
+      <UpstreamTasks rows={taskRows.map(row=>({...row,details:[...row.details]}))}/>
+      <UpstreamTools labels={{header:'Local activity',more:'More details'}} steps={[{icon:'read',label:'Read comparison inputs',chip:'Service measurement',mono:false,detailMono:false,detail:[{text:'Loaded the bundled request-counter fixture.'}]}]} diffs={[]} diffLines={{}}/>
+      <section aria-label="Draft approval">
+        {decision?<p role="status">{decision} <button type="button" className="reset-button" onClick={()=>choose('')}>Review again</button></p>:<UpstreamReview questions={reviewQuestions.map(question=>({...question,options:[...question.options]}))} labels={{sentMessage:'Local decision recorded',send:'Record decision'}} onSubmitted={answers=>choose(answers[0]?.includes(0)?'Approved in this demo':answers[0]?.includes(1)?'Changes requested':'No decision recorded')}/>}
+      </section>
+      <details className="report-details"><summary>Explore the report workbench</summary><UpstreamReportTools/></details>
+    </div>
   </div>;
 }
 

@@ -6,6 +6,7 @@ import { Composer } from './Composer';
 import { defaults, examples, inferScene, newSession, useStored } from './session';
 import type { Area, Exchange, Preferences, Session } from './session';
 import { Scene } from './Scene';
+import { UpstreamLoading, UpstreamResponse } from './upstream/ReferenceKit';
 
 const nav = [
   {name:'Chat',icon:MessageCircle}, {name:'Study',icon:BookOpen}, {name:'Workspace',icon:FolderOpen},
@@ -28,6 +29,8 @@ const storage = 'super-harness';
 
 function initialSessions() { const session = newSession(); return {sessions:[session],active:session.id}; }
 const waitTime = 720;
+const localTokens = 'I can work through this with you using an interactive example. Try an automaton, a software architecture map, or an evidence comparison to see how the interface adapts.'.split(' ').map(text => ({text}));
+const localFollowUps = ['Make an interactive DFA for strings ending in abb.', 'Map a software architecture as an interactive diagram.', 'Compare sources in a research evidence matrix.'];
 
 export default function App() {
   const [state, setState] = useStored(storage+'-sessions',initialSessions);
@@ -38,19 +41,24 @@ export default function App() {
   const [overlay,setOverlay] = useState<'search'|'settings'|null>(null);
   const [query,setQuery] = useState('');
   const [detail,setDetail] = useState<Detail|null>(null);
-  const [tick,setTick] = useState(Date.now());
+  const [tick,setTick] = useState(Date.now);
   const scrollBox = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const scroll = useRef<Record<string, number>>({});
   const session = state.sessions.find(tab=>tab.id===state.active) ?? state.sessions[0];
   const dev = location.pathname.startsWith('/dev');
   const latest = session.exchanges.at(-1);
-  const busy = Boolean(latest && tick-latest.started<waitTime);
+  const busy = Boolean(latest && Math.max(tick,Date.now())-latest.started<waitTime);
 
   useEffect(()=>{
-    const handle = window.setInterval(()=>setTick(Date.now()),110);
-    return ()=>window.clearInterval(handle);
-  },[]);
+    const now=Date.now();
+    const pending=state.sessions.flatMap(tab=>tab.exchanges).filter(exchange=>exchange.started+waitTime>now);
+    const deadline=Math.min(...pending.map(exchange=>exchange.started+waitTime));
+    if(Number.isFinite(deadline)){
+      const handle=window.setTimeout(()=>setTick(Date.now()),deadline-now+5);
+      return ()=>window.clearTimeout(handle);
+    }
+  },[state.sessions,tick]);
   useEffect(()=>{
     const handle=(event:KeyboardEvent)=>{
       if ((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k') {
@@ -100,16 +108,16 @@ export default function App() {
     });
     if(id===session.id)setDetail(null);
   }
-  function send() {
-    const input=session.draft.trim();
+  function send(override?:string) {
+    const input=(override??session.draft).trim();
     if (busy||(!input&&!session.attachments.length))return;
     const started=Date.now();
-    const exchange:Exchange={id:crypto.randomUUID(),input:input||'Attached files',scene:inferScene(input),attachments:session.attachments,started};
+    const exchange:Exchange={id:crypto.randomUUID(),input:input||'Attached files',scene:inferScene(input),attachments:override?[]:session.attachments,started};
     setTick(started);
-    update({exchanges:[...session.exchanges,exchange],draft:'',attachments:[],title:session.title==='New chat'?(input||'Attached files').slice(0,45):session.title});
+    update({exchanges:[...session.exchanges,exchange],draft:override?session.draft:'',attachments:override?session.attachments:[],title:session.title==='New chat'?(input||'Attached files').slice(0,45):session.title});
   }
   const onInspect = (next:Detail)=>setDetail(next);
-  const composer=<Composer key={session.id} session={session} update={update} send={send} voice={()=>openArea('Live')} busy={busy}/>;
+  const composer=<Composer key={session.id} session={session} update={update} send={()=>send()} voice={()=>openArea('Live')} busy={busy}/>;
   const hasChat = session.scene || session.exchanges.length>0;
   const pinned = [examples[5],examples[7]];
   const recent = [...state.sessions].reverse().filter(item=>item.title!=='New chat').slice(0,4);
@@ -168,8 +176,8 @@ export default function App() {
               <div className="home-recent"><span>Pick up where you left off</span><button onClick={()=>add('Chat','dfa')}>Automata and formal languages <ArrowDownRight size={14}/></button></div>
             </div>
             :session.area==='Chat'?<div className="conversation">
-              {session.scene&&<Response key={session.scene} scene={session.scene} sessionId={session.id} instanceId="seed" input={examples.find(item=>item.id===session.scene)?.description??session.title} attachments={[]} preferences={preferences} onInspect={onInspect}/>}
-              {session.exchanges.map(exchange=><Response key={exchange.id} scene={exchange.scene} sessionId={session.id} instanceId={exchange.id} input={exchange.input} attachments={exchange.attachments} loading={tick-exchange.started<waitTime} preferences={preferences} onInspect={onInspect}/>)}
+              {session.scene&&<Response key={session.scene} scene={session.scene} sessionId={session.id} instanceId="seed" input={examples.find(item=>item.id===session.scene)?.description??session.title} attachments={[]} preferences={preferences} onInspect={onInspect} onFollowUp={send}/>}
+              {session.exchanges.map(exchange=><Response key={exchange.id} scene={exchange.scene} sessionId={session.id} instanceId={exchange.id} input={exchange.input} attachments={exchange.attachments} loading={Math.max(tick,Date.now())-exchange.started<waitTime} preferences={preferences} onInspect={onInspect} onFollowUp={send}/>)}
             </div>:<Scene key={session.id} area={session.area} scene={session.scene} sessionId={session.id} instanceId="environment" voiceStyle={preferences.voice} onInspect={onInspect}/>}
           </div>
           {!dev&&session.area==='Chat'&&hasChat&&<div className="composer-dock">{composer}</div>}
@@ -179,7 +187,7 @@ export default function App() {
       </div>
     </div>
     <dialog ref={dialog} className="modal" onCancel={()=>setOverlay(null)} onClick={event=>{if(event.target===event.currentTarget)setOverlay(null);}}>
-      {overlay==='search'&&<section><div className="modal-header"><Search size={20}/><input aria-label="Search conversations and examples" placeholder="Search conversations and examples…" value={query} onChange={event=>setQuery(event.target.value)}/><button className="icon-button" aria-label="Close search" onClick={()=>setOverlay(null)}><X size={18}/></button></div><div className="search-results">
+      {overlay==='search'&&<section><div className="modal-header"><Search size={20}/><input autoFocus aria-label="Search conversations and examples" placeholder="Search conversations and examples…" value={query} onChange={event=>setQuery(event.target.value)}/><button className="icon-button" aria-label="Close search" onClick={()=>setOverlay(null)}><X size={18}/></button></div><div className="search-results">
         {query&&state.sessions.filter(item=>item.title.toLowerCase().includes(query.toLowerCase())).map(item=><button key={item.id} onClick={()=>select(item.id)}><MessageCircle size={17}/><span><strong>{item.title}</strong><small>{item.area} session</small></span></button>)}
         {filtered.map(item=><button key={item.id} onClick={()=>add('Chat',item.id)}><Brand size={17}/><span><strong>{item.title}</strong><small>{item.description}</small></span><ArrowUpRight size={15}/></button>)}
         {filtered.length===0&&!state.sessions.some(item=>item.title.toLowerCase().includes(query.toLowerCase()))&&<p>No matching conversations or examples.</p>}
@@ -196,13 +204,13 @@ export default function App() {
 function Thinking({variant}:{variant:string}) {
   return <span className={`thinking ${variant.toLowerCase()}`} aria-hidden="true"><i/><i/><i/></span>;
 }
-function Response({scene,sessionId,instanceId,input,attachments,loading,preferences,onInspect}:{scene:string;sessionId:string;instanceId:string;input:string;attachments:string[];loading?:boolean;preferences:Preferences;onInspect:(detail:Detail)=>void}) {
+function Response({scene,sessionId,instanceId,input,attachments,loading,preferences,onInspect,onFollowUp}:{scene:string;sessionId:string;instanceId:string;input:string;attachments:string[];loading?:boolean;preferences:Preferences;onInspect:(detail:Detail)=>void;onFollowUp:(text:string)=>void}) {
   return <article className="exchange">
     <div className="user-message">{input}{attachments.map(file=><span className="user-attachment" key={file}><FileText size={14}/>{file}</span>)}</div>
     <div className="assistant-message"><span className="answer-avatar"><Brand size={20}/></span><div className="assistant-content"><div className="assistant-name">Super Harness</div>
-      {loading?<div className="activity" role="status"><Thinking variant={preferences.thinking}/> Preparing a local response</div>:<>
+      {loading?<div className="activity" role="status"><UpstreamLoading variant={preferences.thinking} label="Preparing a local response"/></div>:<>
         {scene!=='conversation'&&<details className="activity" open={preferences.activity==='Expanded'}><summary><CircleCheck size={15}/> Local example ready <ChevronDown size={13}/></summary><div><Activity size={14}/> Loaded an interactive fixture for this conversation.</div></details>}
-        {scene==='conversation'?<div className="stream-intro"><p>I can work through this with you using an interactive example. Explore an automaton, build an architecture map, or compare evidence to see how the interface adapts.</p><p>Use workspace search to open an example, or ask for an assessment, a diagram, or a financial scenario.</p></div>:<Scene scene={scene} sessionId={sessionId} instanceId={instanceId} onInspect={onInspect}/>}
+        {scene==='conversation'?<UpstreamResponse content={localTokens} sources={[]} followUps={localFollowUps} loop={false} fill onFollowUp={onFollowUp}/>:<Scene scene={scene} sessionId={sessionId} instanceId={instanceId} onInspect={onInspect}/>}
         {scene==='mixed'&&<button className="artifact-link" onClick={()=>onInspect({title:'Service measurement brief',body:'Track p95 latency, request volume, and error rate together. Compare a typical interval with a known peak and record the rollout decision.'})}><GitBranch size={15}/> Open measurement brief <ArrowUpRight size={14}/></button>}
       </>}
     </div></div>

@@ -20,3 +20,16 @@
 .iu-option input{accent-color:var(--accent,#6366f1)}
 .iu-unknown{border-left:2px solid var(--line,#dbe2ea);padding:.5rem .75rem;color:var(--muted,#64748b)}
 .iu-error{padding:.8rem 1rem;border-radius:.7rem;background:var(--wash,#f1f5f9);color:var(--muted,#64748b)}
+.iu-submit-status{color:var(--muted,#64748b);font-size:.9rem;margin-left:.5rem}
+.iu-button-wrap{display:inline-flex;align-items:center;gap:.4rem}
+.iu-reveal{border:1px solid var(--line,#dbe2ea);border-radius:.7rem;overflow:hidden}
+.iu-reveal-button{width:100%;text-align:left;background:var(--wash,#f1f5f9);border:0;color:var(--ink,#1e293b);font:inherit;font-weight:650;padding:.75rem;cursor:pointer}
+.iu-reveal-body{padding:.8rem}
+.iu-widget{border:1px solid var(--line,#dbe2ea);border-radius:.7rem;background:var(--surface,#fff);padding:.8rem}
+.iu-callout{background:var(--wash,#f1f5f9)}
+.iu-metric{display:flex;justify-content:space-between;gap:1rem;align-items:center}
+.iu-metric strong{font-size:1.25rem}
+.iu-tone-positive{border-color:var(--accent,#6366f1)}
+.iu-tone-warning{background:var(--wash,#f1f5f9)}
+.iu-tone-negative{border-color:var(--line,#dbe2ea)}
+.iu-divider{border:0;border-top:1px solid var(--line,#dbe2ea);width:100%}

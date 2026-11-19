@@ -1,12 +1,21 @@
 import { ArrowUp, AudioLines, Check, ChevronDown, Paperclip, SlidersHorizontal, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Session } from './session';
 
 export function Composer({session, update, send, voice, busy}:{session:Session;update:(patch:Partial<Session>)=>void;send:()=>void;voice:()=>void;busy:boolean}) {
   const [open, setOpen] = useState<'model'|'tools'|null>(null);
+  const root = useRef<HTMLFormElement>(null);
+  useEffect(()=>{
+    if(!open)return;
+    const outside=(event:PointerEvent)=>{
+      if(event.target instanceof Node&&!root.current?.contains(event.target))setOpen(null);
+    };
+    window.addEventListener('pointerdown',outside);
+    return ()=>window.removeEventListener('pointerdown',outside);
+  },[open]);
   const files = useRef<HTMLInputElement>(null);
   const draft = useRef<HTMLTextAreaElement>(null);
-  return <form className="composer" onSubmit={event=>{event.preventDefault();if(!busy)send();}}>
+  return <form ref={root} className="composer" onKeyDown={event=>{if(event.key==='Escape')setOpen(null);}} onSubmit={event=>{event.preventDefault();if(!busy)send();}}>
     {session.attachments.length>0 && <div className="attachments">{session.attachments.map(name=><button key={name} type="button" onClick={()=>update({attachments:session.attachments.filter(file=>file!==name)})}>{name}<X size={13}/></button>)}</div>}
     <textarea ref={draft} aria-label="Message" placeholder="Ask, explore, or build anything…" value={session.draft} rows={2} onChange={event=>update({draft:event.target.value})} onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing){event.preventDefault();if(!busy)send();}}}/>
     <input hidden type="file" ref={files} multiple onChange={event=>{update({attachments:[...new Set([...session.attachments,...Array.from(event.target.files??[],file=>file.name)])]});event.target.value='';}}/>
