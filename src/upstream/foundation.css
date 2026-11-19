@@ -2,6 +2,7 @@
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
 @source "./*.tsx";
 @source "../upstream-extras/*.tsx";
+@source "../report-visuals/*.tsx";
 /* shadow-plugin (flornkm) — smooth, layered shadow stacks. The unprefixed
  * entry maps them onto Tailwind's --shadow-xs…2xl scale; our semantic tokens
  * below build on those values so the whole app picks up the smooth shadows. */

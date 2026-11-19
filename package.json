@@ -11,6 +11,8 @@
     "test:browser": "playwright test --config tests/playwright.config.ts"
   },
   "dependencies": {
+    "glimm": "^0.4.1",
+    "liveline": "^0.0.7",
     "lucide-react": "^0.468.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

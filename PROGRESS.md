@@ -16,3 +16,10 @@
 ## Resume
 
 Run `npm ci`, start the preview with `npm run dev -- --port 4173`, then run lint, typecheck, build and browser tests. Verify the remote branch after each push. Review `docs/component-manifest.md` for source production coverage. All demo data and actions stay in browser state. External service adapters are future work.
+
+## Verified handoff
+
+- Lint, typecheck and production build pass. Chromium reported 5 passing tests and 3 viewport-specific skips. Both desktop and mobile mounted all ten examples. The DFA accepted `aabb`, and changing the Market Monitor period updated the chart path.
+- Desktop and mobile screenshots are in `screenshots/`. The preview is on `http://127.0.0.1:4173/` inside the Cloud desktop. This environment provides no forwarded preview URL.
+- All 21 Beautiful UI sources are archived. The app uses 18 upstream implementations, two local equivalents, and its own sidebar. See the manifest for exact component scope and dependencies.
+- Remaining source fidelity work, if needed, is to adapt the archived Records Table, Selection Actions, and Sidebar Nav. The dedicated branch tracks `origin/feat/super-harness-ui-foundation`.

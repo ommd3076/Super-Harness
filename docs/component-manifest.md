@@ -36,4 +36,6 @@ This harness imports seven components directly from `src/upstream/ReferenceKit.t
 
 Chat Composer and Agent Screen are integrated in the mixed conversation’s report workbench via `src/upstream-extras/`. Agent Screen uses a bundled mock visual and no capture service. The upstream foundation contained an unmatched closing brace. The running adaptation removes it and scopes Tailwind utility generation to the adapted components. Surfer uses a local loading animation without the upstream hosted video.
 
-Of the 21 requested originals, 16 are used in the app and all 21 are archived. Prompt Bar, Records Table, Sidebar Nav, Insight Cards, and Selection Actions remain archived only. Super Harness uses its own composer and navigation. The archived component registry lists the additional upstream dependencies per component.
+Prompt Bar and Insight Cards use adapted upstream source in `src/report-visuals/`. Prompt Bar uses `glimm` for its motion and saves a local reviewer note. Insight Cards uses `liveline` with fictional service costs. The report workbench also includes locally implemented equivalents for Records Table and Selection Actions.
+
+Of the 21 requested components, 18 use upstream source in the running app. Records Table and Selection Actions have local equivalents, and Sidebar Nav uses Super Harness’s own navigation. All 21 upstream sources are archived. The archived registry lists additional dependencies per component.

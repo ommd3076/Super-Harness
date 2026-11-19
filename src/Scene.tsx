@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { IntelligentUI } from './runtime';
 import { Study, studyScenes } from './study';
 import { Workspace, Research, Live } from './environments';
@@ -6,6 +6,8 @@ import type { Area } from './session';
 import { UpstreamAuditExtras } from './upstream-extras';
 import { UpstreamReportTools } from './upstream/ReportTools';
 import { UpstreamCode, UpstreamContext, UpstreamReview, UpstreamTasks, UpstreamTools } from './upstream/ReferenceKit';
+
+const ReportVisuals = lazy(async () => ({default:(await import('./report-visuals')).ReportVisuals}));
 
 const reviewQuestions = [
   {q:'Review the measurement brief',type:'radio',options:['Approve this local draft','Request changes']},
@@ -33,6 +35,7 @@ const measurement = {
 
 function Mixed({sessionId,instanceId,onInspect}:SceneProps) {
   const key='harness-approval:'+sessionId+':'+instanceId;
+  const [workbenchOpened,setWorkbenchOpened]=useState(false);
   const [decision,setDecision]=useState(()=>localStorage.getItem(key)??'');
   const choose=(value:string)=>{setDecision(value);localStorage.setItem(key,value);};
   return <div className="mixed-scene">
@@ -46,7 +49,7 @@ function Mixed({sessionId,instanceId,onInspect}:SceneProps) {
       <section aria-label="Draft approval">
         {decision?<p role="status">{decision} <button type="button" className="reset-button" onClick={()=>choose('')}>Review again</button></p>:<UpstreamReview questions={reviewQuestions.map(question=>({...question,options:[...question.options]}))} labels={{sentMessage:'Local decision recorded',send:'Record decision'}} onSubmitted={answers=>choose(answers[0]?.includes(0)?'Approved in this demo':answers[0]?.includes(1)?'Changes requested':'No decision recorded')}/>}
       </section>
-      <details className="report-details"><summary>Explore the report workbench</summary><UpstreamReportTools/><UpstreamAuditExtras/></details>
+      <details className="report-details" onToggle={event=>{if(event.currentTarget.open)setWorkbenchOpened(true);}}><summary>Explore the report workbench</summary>{workbenchOpened&&<><UpstreamReportTools/><UpstreamAuditExtras/><Suspense fallback={<p role="status">Loading report visuals…</p>}><ReportVisuals storageKey={key+':review-note'} onInspect={onInspect}/></Suspense></>}</details>
     </div>
   </div>;
 }

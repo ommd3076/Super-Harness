@@ -33,8 +33,8 @@ export function UpstreamReportTools() {
     <section><h3>Find a measurement</h3><SearchList items={['Inspect request volume','Compare p95 latency','Review 5xx ratio','Check release baseline','Export local sample']}
       labels={{placeholder:'Search service measurements…',ariaLabel:'Search service measurements',emptyTitle:'No matching measurements',emptyHint:'Try another service signal'}}/></section>
     <section><h3>Measurement workflow</h3><Flowchart steps={[
-      {id:'request',row:0,x:.5,w:300,kind:{label:'Input',hue:'#9a5cff'},hue:'#9a5cff',title:'Request counters',caption:'Read local service sample'},
-      {id:'check',row:1,x:.5,w:356,kind:{label:'Condition',hue:'#f09a2f'},condition:true},
+      {id:'trigger',row:0,x:.5,w:300,kind:{label:'Input',hue:'#9a5cff'},hue:'#9a5cff',title:'Request counters',caption:'Read local service sample'},
+      {id:'cond',row:1,x:.5,w:356,kind:{label:'Check',hue:'#f09a2f'},hue:'#f09a2f',title:'Compare release windows',caption:'Measure error-rate change against the baseline'},
     ]}/></section>
     <section><h3>Report layout controls</h3><FineTuneCard labels={{title:'Service report card',type:'Signal group',placeholder:'Select group',layout:'Layout',adjust:'Adjust',edited:'Edited'}} options={['Latency','Traffic','Errors']}/></section>
   </div>;
