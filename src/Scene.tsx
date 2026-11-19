@@ -3,6 +3,7 @@ import { IntelligentUI } from './runtime';
 import { Study, studyScenes } from './study';
 import { Workspace, Research, Live } from './environments';
 import type { Area } from './session';
+import { UpstreamAuditExtras } from './upstream-extras';
 import { UpstreamReportTools } from './upstream/ReportTools';
 import { UpstreamCode, UpstreamContext, UpstreamReview, UpstreamTasks, UpstreamTools } from './upstream/ReferenceKit';
 
@@ -45,7 +46,7 @@ function Mixed({sessionId,instanceId,onInspect}:SceneProps) {
       <section aria-label="Draft approval">
         {decision?<p role="status">{decision} <button type="button" className="reset-button" onClick={()=>choose('')}>Review again</button></p>:<UpstreamReview questions={reviewQuestions.map(question=>({...question,options:[...question.options]}))} labels={{sentMessage:'Local decision recorded',send:'Record decision'}} onSubmitted={answers=>choose(answers[0]?.includes(0)?'Approved in this demo':answers[0]?.includes(1)?'Changes requested':'No decision recorded')}/>}
       </section>
-      <details className="report-details"><summary>Explore the report workbench</summary><UpstreamReportTools/></details>
+      <details className="report-details"><summary>Explore the report workbench</summary><UpstreamReportTools/><UpstreamAuditExtras/></details>
     </div>
   </div>;
 }

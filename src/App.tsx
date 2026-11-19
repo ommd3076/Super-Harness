@@ -46,7 +46,7 @@ export default function App() {
   const dialog = useRef<HTMLDialogElement>(null);
   const scroll = useRef<Record<string, number>>({});
   const session = state.sessions.find(tab=>tab.id===state.active) ?? state.sessions[0];
-  const dev = location.pathname.startsWith('/dev');
+  const dev = import.meta.env.DEV && ['/dev','/dev/components'].includes(location.pathname);
   const latest = session.exchanges.at(-1);
   const busy = Boolean(latest && Math.max(tick,Date.now())-latest.started<waitTime);
 

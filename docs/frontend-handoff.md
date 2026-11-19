@@ -5,7 +5,7 @@ Run `npm ci` and `npm run dev -- --port 4173`. Open `http://127.0.0.1:4173/` in 
 | Route | Surface |
 | --- | --- |
 | `/` | Chat, Study, Workspace, Research, and Live share a tabbed shell. |
-| `/dev/components` | Developer-only entry in navigation policy, with interactive fixture previews. It is a public route if the static app is hosted publicly. |
+| `/dev/components` | Interactive fixture previews available in the Vite development server. Production builds render the regular shell. |
 
 Workspace search opens conversations and bundled examples. The composer supports drafts, model labels, example tools, local attachment names, and fixture playback. Study exercises evaluate answers locally. Workspace runs, its browser preview, and approvals use synthetic state. Research uses bundled datasets. Live uses local animation and transcript playback. Settings are stored in the browser.
 
