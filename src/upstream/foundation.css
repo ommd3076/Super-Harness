@@ -2,6 +2,10 @@
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
 @source "./*.tsx";
 @source "../upstream-extras/*.tsx";
+@source "../beautiful/components/atoms/*.tsx";
+@source "../beautiful/components/primitives/RecordsTable.tsx";
+@source "../beautiful/components/primitives/SelectionActions.tsx";
+@source "../beautiful/components/primitives/GlideMenu.tsx";
 @source "../report-visuals/*.tsx";
 /* shadow-plugin (flornkm) — smooth, layered shadow stacks. The unprefixed
  * entry maps them onto Tailwind's --shadow-xs…2xl scale; our semantic tokens

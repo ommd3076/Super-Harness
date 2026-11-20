@@ -325,7 +325,7 @@ function StepBody({ node }: { node: StepNode }) {
 }
 
 /* ── the canvas ── */
-export default function Flowchart({ steps = NODES }: { steps?: StepNode[]; variant?: string } = {}) {
+export default function Flowchart({ steps = NODES, edges = EDGES }: { steps?: StepNode[]; edges?: { from: string; to: string }[]; variant?: string } = {}) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef(new Map<string, HTMLElement>());
   const [width, setWidth] = useState(0);
@@ -466,7 +466,7 @@ export default function Flowchart({ steps = NODES }: { steps?: StepNode[]; varia
     >
       {/* connectors */}
       <svg width={cw} height={canvasH} className="pointer-events-none absolute inset-0">
-        {EDGES.map((edge) => (
+        {edges.map((edge) => (
           <path
             key={`${edge.from}-${edge.to}`}
             d={bezier(edge)}

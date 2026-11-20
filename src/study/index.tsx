@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useState } from 'react';
 import { ArrowRight, Check, ChevronRight, CircleHelp, LockKeyhole, RotateCcw, Sparkles } from 'lucide-react';
 import { IntelligentUI } from '../runtime';
+import { Nfa } from './Nfa';
 import './styles.css';
 
 export const studyScenes = [
@@ -9,6 +10,7 @@ export const studyScenes = [
   { id: 'code', title: 'Rebuild the route', description: 'Reconstruct an Express and Mongoose endpoint from its parts.' },
   { id: 'assessment', title: 'Name the value', description: 'Infer a variable’s type from the evidence in a program.' },
   { id: 'clarification', title: 'Ask before assuming', description: 'Resolve an underspecified request with one useful question.' },
+  { id: 'nfa', title: 'Branch the automaton', description: 'Follow all active states, including epsilon transitions.' },
 ] as const;
 
 type SceneId = (typeof studyScenes)[number]['id'];
@@ -36,7 +38,7 @@ export function Study({ sessionId, scene }: { sessionId: string; scene?: string 
   const reset = () => { setSaved(blank); setFormReset((n) => n + 1); try { localStorage.removeItem(`intelligent-ui:${encodeURIComponent(sessionId)}:${encodeURIComponent(`${active}-form`)}`); } catch { /* storage can be unavailable */ } };
   const current = useMemo(() => studyScenes.find((item) => item.id === active)!, [active]);
   const check = () => setSaved((current) => ({ ...current, complete: true }));
-  return <main className="study-shell">
+  return <div className="study-shell">
     <header className="study-top"><div className="study-brand"><span className="study-mark"><Sparkles size={17}/></span><span>Super Harness <i>·</i> Study lab</span></div><span className="study-session"><span className="session-dot"/> SESSION SAVED</span></header>
     <div className="study-layout">
       <aside className="study-rail"><p className="eyebrow">LEARNING PATH</p><h2>Make it<br/>make sense.</h2><p className="rail-copy">Short, focused exercises that turn abstract ideas into working intuition.</p><nav aria-label="Study scenes">{studyScenes.map((item, i) => <button key={item.id} className={`scene-link ${active === item.id ? 'is-active' : ''}`} onClick={() => setActive(item.id)}><span className="scene-num">0{i + 1}</span><span>{item.title}</span><ChevronRight size={15}/></button>)}</nav><div className="rail-note"><LockKeyhole size={15}/><span>Your progress stays on this device and session.</span></div></aside>
@@ -46,10 +48,11 @@ export function Study({ sessionId, scene }: { sessionId: string; scene?: string 
         {active === 'code' && <CodeTask answer={answer} setAnswer={setAnswer} check={check} complete={saved.complete}/>}
         {active === 'assessment' && <Assessment answer={answer} setAnswer={setAnswer} check={check} complete={saved.complete}/>}
         {active === 'clarification' && <Clarification answer={answer} setAnswer={setAnswer} check={check} complete={saved.complete} sessionId={sessionId} resetKey={formReset}/>}
-        <footer className="study-footer"><span>STUDY / FOUNDATIONS</span><span>{String(studyScenes.findIndex((x) => x.id === active) + 1).padStart(2, '0')} — 05</span></footer>
+        {active === 'nfa' && <Panel label="Automata theory" title="Trace a nondeterministic machine"><Nfa input={answer('nfaInput')} position={Number(answer('nfaStep')) || 0} onInput={value=>{setAnswer('nfaInput',value);setAnswer('nfaStep','0');}} onStep={step=>setAnswer('nfaStep',String(step))}/></Panel>}
+        <footer className="study-footer"><span>STUDY / FOUNDATIONS</span><span>{String(studyScenes.findIndex((x) => x.id === active) + 1).padStart(2, '0')} — {String(studyScenes.length).padStart(2, '0')}</span></footer>
       </section>
     </div>
-  </main>;
+  </div>;
 }
 
 type Props = { answer: (key: string) => string; setAnswer: (key: string, value: string) => void; check: (ok: boolean) => void; complete: boolean; sessionId?: string; resetKey?: number };

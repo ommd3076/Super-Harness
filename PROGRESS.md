@@ -7,7 +7,8 @@
 - UI Skills is enabled in Codex. An ephemeral native Codex session successfully retrieved its `improve-ui` and `fixing-motion-performance` skills. Impeccable 4.10.0 is installed locally and its audit and polish guidance are in use.
 - Phase 1 browser tests passed in Edge at 1440px and 390px, including approval navigation and the Agent Screen viewer. Lint passed with six preserved vendor-directive warnings and the production build passed. Captures are in `screenshots/original-components-{desktop,mobile}.png`.
 - Phase 2 connects the original Prompt Bar adaptation to local session state and includes command filtering, draft previews, split workspace, a compact tool trace and live appearance controls. Browser checks at both widths verified the empty, active and split routes, independent drafts across reload, and preference changes.
-- Remaining: strengthen the declarative response runtime, verify the combined local workflows, implement selected extensions and publish the verified feature branch. The phase checkpoints are local commits.
+- Phase 3 adds the Decision Brief with a persistent interview, chart, editable table, original Flowchart, isolated preview and local approval. The Study lab has an NFA stepper. The workbench now imports the original Records Table and Selection Actions.
+- Remaining: verify the final selected extensions, document all 48 statuses, run the complete desktop and mobile suite, and publish the verified feature branch. The phase checkpoints are local commits.
 
 ## Previous handoff
 

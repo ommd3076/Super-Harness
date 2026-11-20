@@ -35,8 +35,9 @@ export const examples = [
   {id:'finance', title:'Q4 scenario analysis', description:'Model financial scenarios with adjustable assumptions.'},
   {id:'evidence', title:'Evidence explorer', description:'Compare sources in a research evidence matrix.'},
   {id:'mixed', title:'Thinking in systems', description:'Show me a mixed-mode response about measuring a service.'},
+  {id:'brief', title:'Build a decision brief', description:'Clarify a decision brief and compare the rollout scenarios.'},
 ];
 export function inferScene(text: string) {
-  const rules: [RegExp, string][] = [[/\b(dfa|abb|automata)\b/i,'dfa'],[/\brsa\b/i,'rsa'],[/express|mongoose/i,'code'],[/quiz|assessment|test my/i,'assessment'],[/clarif|scope a project/i,'clarification'],[/architecture|node.edge/i,'architecture'],[/agent|parallel run/i,'agents'],[/financ|revenue|scenario/i,'finance'],[/evidence|research|compare sources/i,'evidence'],[/mixed.mode|measuring a service|thinking in systems/i,'mixed']];
+  const rules: [RegExp, string][] = [[/decision brief|\/brief\b/i,'brief'],[/\b(nfa|nondeterministic)\b/i,'nfa'],[/\b(dfa|abb|automata)\b/i,'dfa'],[/\brsa\b/i,'rsa'],[/express|mongoose/i,'code'],[/quiz|assessment|test my/i,'assessment'],[/clarif|scope a project/i,'clarification'],[/architecture|node.edge/i,'architecture'],[/agent|parallel run/i,'agents'],[/financ|revenue|scenario/i,'finance'],[/evidence|research|compare sources/i,'evidence'],[/mixed.mode|measuring a service|thinking in systems/i,'mixed']];
   return rules.find(([expression]) => expression.test(text))?.[1] ?? 'conversation';
 }

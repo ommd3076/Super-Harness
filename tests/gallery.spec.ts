@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-test('all ten fixtures mount and the report workbench is interactive', async ({page}) => {
+test('all fixtures mount and the report workbench is interactive', async ({page}) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/dev/examples');
   const examples = page.locator('.gallery > details');
-  await expect(examples).toHaveCount(10);
+  await expect(examples).toHaveCount(11);
   for (const summary of await examples.locator(':scope > summary').all()) {
     await summary.click();
     await summary.click();
@@ -16,5 +16,6 @@ test('all ten fixtures mount and the report workbench is interactive', async ({p
   await mixed.getByRole('radio', {name:'Peak traffic'}).check();
   await mixed.getByText('Explore the report workbench').click();
   await expect(mixed.getByRole('heading', {name:'Measurement trace'})).toBeVisible();
+  await expect(mixed.getByRole('checkbox', {name:'Select Atlas Research'})).toBeVisible();
   expect(errors).toEqual([]);
 });

@@ -1,13 +1,14 @@
 import { lazy, Suspense, useState } from 'react';
 import { IntelligentUI } from './runtime';
+import { PlanningBrief } from './runtime/PlanningBrief';
 import { Study, studyScenes } from './study';
 import { Workspace, Research, Live } from './environments';
 import type { Area } from './session';
-import { UpstreamAuditExtras } from './upstream-extras';
 import { UpstreamReportTools } from './upstream/ReportTools';
 import { UpstreamCode, UpstreamContext, UpstreamReview, UpstreamTasks, UpstreamTools } from './upstream/ReferenceKit';
 
 const ReportVisuals = lazy(async () => ({default:(await import('./report-visuals')).ReportVisuals}));
+const ReportExtras = lazy(async () => ({default:(await import('./upstream-extras')).UpstreamAuditExtras}));
 
 const reviewQuestions = [
   {q:'Review the measurement brief',type:'radio',options:['Approve this local draft','Request changes']},
@@ -49,7 +50,7 @@ function Mixed({sessionId,instanceId,onInspect}:SceneProps) {
       <section aria-label="Draft approval">
         {decision?<p role="status">{decision} <button type="button" className="reset-button" onClick={()=>choose('')}>Review again</button></p>:<UpstreamReview questions={reviewQuestions.map(question=>({...question,options:[...question.options]}))} labels={{sentMessage:'Local decision recorded',send:'Record decision'}} onSubmitted={answers=>choose(answers[0]?.includes(0)?'Approved in this demo':answers[0]?.includes(1)?'Changes requested':'No decision recorded')}/>}
       </section>
-      <details className="report-details" onToggle={event=>{if(event.currentTarget.open)setWorkbenchOpened(true);}}><summary>Explore the report workbench</summary>{workbenchOpened&&<><UpstreamReportTools/><UpstreamAuditExtras/><Suspense fallback={<p role="status">Loading report visuals…</p>}><ReportVisuals storageKey={key+':review-note'} onInspect={onInspect}/></Suspense></>}</details>
+      <details className="report-details" onToggle={event=>{if(event.currentTarget.open)setWorkbenchOpened(true);}}><summary>Explore the report workbench</summary>{workbenchOpened&&<><UpstreamReportTools/><Suspense fallback={<p role="status">Loading report visuals…</p>}><ReportExtras/><ReportVisuals storageKey={key+':review-note'} onInspect={onInspect}/></Suspense></>}</details>
     </div>
   </div>;
 }
@@ -58,6 +59,7 @@ export function Scene(props:SceneProps) {
   const {area,scene,sessionId,instanceId,voiceStyle,onInspect}=props;
   const sceneSessionId=sessionId+':'+instanceId;
   if(scene==='mixed')return <Mixed {...props}/>;
+  if(scene==='brief')return <PlanningBrief sessionId={sessionId} instanceId={instanceId}/>;
   if(area==='Study'||studyScenes.some(item=>item.id===scene))return <Study sessionId={sceneSessionId} scene={scene}/>;
   if(area==='Workspace'||scene==='architecture'||scene==='agents')return <Workspace sessionId={sceneSessionId} scene={scene} onInspect={onInspect}/>;
   if(area==='Research'||scene==='finance'||scene==='evidence')return <Research sessionId={sceneSessionId} scene={scene} onInspect={onInspect}/>;
