@@ -1,6 +1,16 @@
 # Super Harness progress
 
-## Branch and remote
+## Current implementation
+
+- Windows checkout: `C:/tmp/SH-UI/Super-Harness`. GitHub's default feature branch and the local base both resolved to `b670270f9727fd4c71f9b965db253919178a1e2a` on 2026-11-20. This work uses `feat/beautiful-ui-source-fidelity`.
+- The author checkout at `44a274e598395ab61e7c96c26fda2758780253b7` supplied all 21 demos for the development-only `/dev/components` route. The existing ten fixtures remain at `/dev/examples`. See [the source and browser audit](COMPONENT_AUDIT.md).
+- UI Skills is enabled in Codex. An ephemeral native Codex session successfully retrieved its `improve-ui` and `fixing-motion-performance` skills. Impeccable 4.10.0 is installed locally and its audit and polish guidance are in use.
+- Phase 1 browser tests passed in Edge at 1440px and 390px, including approval navigation and the Agent Screen viewer. Lint passed with six preserved vendor-directive warnings and the production build passed. Captures are in `screenshots/original-components-{desktop,mobile}.png`.
+- Remaining: refine and verify the existing shell, then the local response runtime and selected extensions. Record final desktop and mobile flows and compare the pushed branch head to the local checkpoint.
+
+## Previous handoff
+
+### Branch and remote
 
 - The checkout is `/workspace/super-harness`. The active branch is `feat/super-harness-ui-foundation`.
 - The user supplied [ommd3076/Super-Harness](https://github.com/ommd3076/Super-Harness). The installation reports push access. Git reached the empty remote and accepted a branch-creation dry run.

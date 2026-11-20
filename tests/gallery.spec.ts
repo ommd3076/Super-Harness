@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('all ten fixtures mount and the report workbench is interactive', async ({page}) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/dev/components');
+  await page.goto('/dev/examples');
   const examples = page.locator('.gallery > details');
   await expect(examples).toHaveCount(10);
   for (const summary of await examples.locator(':scope > summary').all()) {

@@ -7,7 +7,7 @@ npm ci
 npm run dev -- --port 4173
 ```
 
-Open [the local preview](http://127.0.0.1:4173/). Start with **Learn a concept**, or choose **Thinking in systems** for a conversation with an editable query, comparison controls, an architecture diagram, and a local approval. All examples are available at `/dev/components`.
+Open [the local preview](http://127.0.0.1:4173/). Start with **Learn a concept**, or choose **Thinking in systems** for a conversation with an editable query, comparison controls, an architecture diagram, and a local approval. The development server exposes the 21 original Beautiful UI demos at `/dev/components` and the local scenarios at `/dev/examples`.
 
 ```sh
 npm run lint

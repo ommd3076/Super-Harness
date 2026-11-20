@@ -1,4 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+
+const linuxChromium = '/usr/bin/chromium';
+const edge = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ??
+  [linuxChromium, edge].find(existsSync);
 
 export default defineConfig({
   testDir: '.',
@@ -9,7 +15,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:4173',
     browserName: 'chromium',
-    launchOptions: { executablePath: '/usr/bin/chromium', args: ['--no-sandbox'] },
+    launchOptions: { executablePath },
     trace: 'off',
   },
   projects: [
