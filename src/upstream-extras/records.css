@@ -831,3 +831,7 @@ th.is-colsel .records-header-icon {
 }
 
 /* ── filter table electric status colors ─────────────────── */
+
+/* Keep row selection discoverable with keyboard and touch in the product workbench. */
+.records-row .records-checkbox { display: inline-flex; }
+.records-row .records-rownum { display: none; }

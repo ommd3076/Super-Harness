@@ -1,5 +1,7 @@
+import { useId, useRef, useState } from 'react';
 import Flowchart from '../upstream/Flowchart';
 import { UpstreamReview } from '../upstream/ReferenceKit';
+import { useStored } from '../session';
 
 export function ParameterChart({ title, points, multiplier }: {
   title: string;
@@ -57,14 +59,57 @@ export function WorkflowDiagram({ title, blocks }: { title: string; blocks: { la
 
 const escapeText = (value: string) => value.replace(/[<>&]/g, char => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;' }[char]!));
 
-export function ArtifactPreview({ title, content, isolated }: { title: string; content: string; isolated: boolean }) {
+type Version = { id: string; content: string; savedAt: string };
+
+export function ArtifactPreview({ title, content, isolated, versionKey, onRestore }: {
+  title: string;
+  content: string;
+  isolated: boolean;
+  versionKey: string;
+  onRestore?: (value: string) => void;
+}) {
   const previewText = content || 'Write a draft to see its preview.';
+  const label = title || 'Draft preview';
+  const readerTitle = useId();
+  const reader = useRef<HTMLDialogElement>(null);
+  const [saved, setSaved] = useStored<Version[]>(versionKey, []);
+  const [selectedId, select] = useState('');
+  const versions = Array.isArray(saved) ? saved : [];
+  const selected = versions.find(version=>version.id===selectedId);
+
+  function saveVersion() {
+    const version = { id: crypto.randomUUID(), content, savedAt: new Date().toISOString() };
+    setSaved(current=>[version, ...(Array.isArray(current) ? current : [])].slice(0, 10));
+    select(version.id);
+  }
+
   return <section className="iu-output iu-artifact">
-    <h3>{title || 'Draft preview'}</h3>
+    <h3>{label}</h3>
     {isolated
       ? <iframe title={title || 'Sandboxed document preview'} sandbox=""
           srcDoc={`<!doctype html><html lang="en"><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><meta name="viewport" content="width=device-width"><style>body{margin:0;padding:16px;font:14px/1.55 system-ui;color:#292e36;background:#f5f7fa;white-space:pre-wrap;overflow-wrap:anywhere}</style><body>${escapeText(previewText)}</body></html>`}/>
       : <p>{previewText}</p>}
+    <div className="iu-actions">
+      <button className="iu-secondary" type="button" onClick={()=>reader.current?.showModal()}>Read draft</button>
+      {onRestore && <button className="iu-secondary" type="button" disabled={!content.trim() || versions[0]?.content===content} onClick={saveVersion}>Save version</button>}
+    </div>
+    {versions.length > 0 && <details className="iu-versions">
+      <summary>Saved versions ({versions.length})</summary>
+      <label>Version
+        <select value={selectedId} onChange={event=>select(event.target.value)}>
+          <option value="">Choose a saved version</option>
+          {versions.map((version,index)=><option key={version.id} value={version.id}>Version {versions.length-index} · {new Date(version.savedAt).toLocaleString()}</option>)}
+        </select>
+      </label>
+      {selected && <>
+        <p>{selected.content}</p>
+        <button type="button" className="iu-secondary" onClick={()=>onRestore?.(selected.content)}>Restore this version</button>
+      </>}
+    </details>}
+    <dialog ref={reader} aria-labelledby={readerTitle} className="iu-reader">
+      <header><h2 id={readerTitle}>{label}</h2><button type="button" className="iu-secondary" onClick={()=>reader.current?.close()}>Close reader</button></header>
+      <p>{previewText}</p>
+    </dialog>
   </section>;
 }
 

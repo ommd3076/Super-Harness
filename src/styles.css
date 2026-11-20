@@ -117,6 +117,25 @@ button,summary,a{ -webkit-tap-highlight-color:transparent }
 .search-results button span { min-width: 0; }
 .search-results small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .settings-preview { border-radius: 8px; background: var(--wash); padding-inline: 9px; }
+.session-announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.session-handoff {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--wash);
+  font-size: 12px;
+}
+.session-handoff div { min-width: 0; flex: 1; }
+.session-handoff p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 3px 0 0; color: var(--muted); }
+.session-handoff button { flex: none; }
+.split-header button:disabled { opacity: .55; }
+.shortcut-list { margin: 0; padding: 12px 16px; }
+.shortcut-list > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
+.shortcut-list > div + div { border-top: 1px solid var(--line); }
+.shortcut-list dd { margin: 0; color: var(--muted); }
+.shortcut-list kbd { padding: 2px 4px; border: 1px solid var(--line); border-radius: 4px; font: inherit; }
 
 @media (max-width: 760px) {
   .work-area.has-split { flex-direction: column; }

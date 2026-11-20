@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 export type Area = 'Chat' | 'Study' | 'Workspace' | 'Research' | 'Live';
 export type Exchange = { id: string; input: string; scene: string; attachments: string[]; started: number };
-export type Session = { id: string; title: string; area: Area; model: string; draft: string; scene?: string; exchanges: Exchange[]; attachments: string[] };
+export type Session = { id: string; title: string; area: Area; model: string; draft: string; scene?: string; exchanges: Exchange[]; attachments: string[]; handoff?: { from: string; text: string } };
 export type Preferences = { appearance: string; density: string; width: string; composer: string; thinking: string; motion: string; activity: string; code: string; voice: 'fluid' | 'matrix' };
 export const defaults: Preferences = { appearance: 'Light', density: 'Comfortable', width: 'Standard', composer: 'Rounded', thinking: 'Orbit', motion: 'Subtle', activity: 'Expanded', code: 'Comfortable', voice: 'fluid' };
 export const newSession = (area: Area = 'Chat', title = area === 'Chat' ? 'New chat' : area, scene?: string): Session => ({

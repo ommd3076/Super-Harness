@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowUpRight, AudioLines, BookOpen, Braces, ChevronDown, CircleCheck, Columns2, Command, FileText, FlaskConical, FolderOpen, GitBranch, MessageCircle, PanelLeft, PanelRight, Plus, Search, Settings2, X } from 'lucide-react';
+import { ArrowDownRight, ArrowRightLeft, ArrowUpRight, AudioLines, BookOpen, Braces, ChevronDown, CircleCheck, Columns2, Command, FileText, FlaskConical, FolderOpen, GitBranch, Keyboard, MessageCircle, PanelLeft, PanelRight, Plus, Search, Settings2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Brand } from './brand';
@@ -45,9 +45,10 @@ export default function App() {
   const [collapsed,setCollapsed] = useStored(storage+'-collapsed',false);
   const [splitId,setSplitId] = useStored<string|null>(storage+'-split',null);
   const [mobileNav,setMobileNav] = useState(false);
-  const [overlay,setOverlay] = useState<'search'|'settings'|null>(null);
+  const [overlay,setOverlay] = useState<'search'|'settings'|'shortcuts'|null>(null);
   const [query,setQuery] = useState('');
   const [detail,setDetail] = useState<Detail|null>(null);
+  const [announcement,setAnnouncement] = useState('');
   const [preview,setPreview] = useState(()=>newSession());
   const [tick,setTick] = useState(Date.now);
   const scrollBox = useRef<HTMLDivElement>(null);
@@ -57,6 +58,7 @@ export default function App() {
   const dev = import.meta.env.DEV && ['/dev','/dev/examples'].includes(location.pathname);
   const splitSession = state.sessions.find(tab=>tab.id===splitId&&tab.id!==session.id&&tab.area==='Chat');
   const latest = session.exchanges.at(-1);
+  const handoffText = latest?.input ?? examples.find(item=>item.id===session.scene)?.description;
   const isLoading = (exchange:Exchange) => Math.max(tick,Date.now())-exchange.started<waitTime;
   const busy = Boolean(latest && isLoading(latest));
 
@@ -146,6 +148,15 @@ export default function App() {
       {target.exchanges.map(exchange=><Response key={exchange.id} scene={exchange.scene} sessionId={target.id} instanceId={exchange.id} input={exchange.input} attachments={exchange.attachments} loading={isLoading(exchange)} preferences={preferences} onInspect={onInspect} onFollowUp={followUp}/>)}
     </div>;
   }
+  function renderHandoff(target:Session) {
+    if (!target.handoff) return null;
+    const {text,from} = target.handoff;
+    return <aside className="session-handoff" aria-label="Context from another session">
+      <div><strong>Context from {from}</strong><p>{text}</p></div>
+      <button type="button" className="iu-secondary" onClick={()=>update({draft:[target.draft,text].filter(Boolean).join('\n\n'),handoff:undefined},target.id)}>Add to draft</button>
+      <button type="button" className="icon-button" onClick={()=>update({handoff:undefined},target.id)} aria-label="Dismiss handoff"><X size={16}/></button>
+    </aside>;
+  }
   const hasChat = session.scene || session.exchanges.length>0;
   const composer=<Composer key={session.id} session={session} variant={preferences.composer} tall={!hasChat} update={update} send={()=>sendFor(session)} voice={()=>openArea('Live')} busy={busy}/>;
   const pinned = [examples[5],examples[7]];
@@ -156,11 +167,13 @@ export default function App() {
     {label:'Start a new chat', icon:Plus, run:()=>add()},
     {label:splitSession?'Close split workspace':'Open split workspace', icon:Columns2, run:()=>{toggleSplit();setOverlay(null);}},
     {label:'Open appearance settings', icon:Settings2, run:()=>setOverlay('settings')},
+    {label:'Show keyboard shortcuts', icon:Keyboard, run:()=>setOverlay('shortcuts')},
   ].filter(item=>item.label.toLowerCase().includes(query.trim().toLowerCase()));
   const currentIcon = nav.find(item=>item.name===session.area)?.icon ?? MessageCircle;
   const CurrentIcon = currentIcon;
   return <div className="app" data-theme={preferences.appearance.toLowerCase()} data-density={preferences.density.toLowerCase()} data-width={preferences.width.toLowerCase()} data-composer={preferences.composer.toLowerCase()} data-motion={preferences.motion.toLowerCase()} data-code={preferences.code.toLowerCase()}>
     <a className="skip-link" href="#content">Skip to conversation</a>
+    <span role="status" className="session-announcement">{announcement}</span>
     {mobileNav&&<button className="nav-scrim" aria-label="Close navigation" onClick={()=>setMobileNav(false)}/>}
     <aside className={`sidebar ${collapsed?'collapsed':''} ${mobileNav?'mobile-open':''}`} aria-label="Workspace navigation">
       <div className="side-brand"><span className="brand-mark"><Brand size={22}/></span><strong>Super Harness</strong><button className="icon-button collapse-button" aria-label={collapsed?'Expand sidebar':'Collapse sidebar'} title={collapsed?'Expand sidebar':'Collapse sidebar'} onClick={()=>setCollapsed(!collapsed)}><PanelLeft size={17}/></button></div>
@@ -203,6 +216,7 @@ export default function App() {
       <div className="breadcrumb"><CurrentIcon size={15}/><span>{session.area}</span><span className="crumb-slash">/</span><strong>{session.title}</strong><span className="grow"/><span className="local-status"><i/> Local mode</span></div>
       <div className={`work-area ${splitSession?'has-split':''}`}>
         <main id="content" className="workspace">
+          {renderHandoff(session)}
           <div className={`viewport ${!dev&&session.area==='Chat'&&!hasChat?'home-viewport':''}`} ref={scrollBox} onScroll={event=>{scroll.current[session.id]=event.currentTarget.scrollTop;}}>
             {dev ? <div className="gallery"><h1>Interactive examples</h1>{examples.map(item=><details key={item.id}><summary>{item.title}</summary><Scene scene={item.id} sessionId={session.id} instanceId={item.id} onInspect={onInspect}/></details>)}</div>
             :session.area==='Chat'&&!hasChat?<div className="home">
@@ -219,7 +233,13 @@ export default function App() {
         {splitSession&&<aside className="workspace split-workspace" aria-label="Split session">
           <header className="split-header"><Columns2 size={15}/><label><span>Split with</span><select aria-label="Split with" value={splitSession.id} onChange={event=>setSplitId(event.target.value)}>
             {state.sessions.filter(tab=>tab.area==='Chat'&&tab.id!==session.id).map(tab=><option key={tab.id} value={tab.id}>{tab.title}</option>)}
-          </select></label><span className="grow"/><button className="icon-button" aria-label="Close split session" onClick={()=>setSplitId(null)}><X size={16}/></button></header>
+          </select></label><span className="grow"/>
+          {handoffText&&<button type="button" className="icon-button" aria-label="Share context to split session" title="Share context to split session" disabled={Boolean(splitSession.handoff)} onClick={()=>{
+            update({handoff:{from:session.title,text:handoffText}},splitSession.id);
+            setAnnouncement(`Context shared with ${splitSession.title}.`);
+          }}><ArrowRightLeft size={15}/></button>}
+          <button className="icon-button" aria-label="Close split session" onClick={()=>setSplitId(null)}><X size={16}/></button></header>
+          {renderHandoff(splitSession)}
           <div className="viewport" key={splitSession.id}>
             {splitSession.scene||splitSession.exchanges.length?renderConversation(splitSession):<p className="split-empty">Start a conversation in this pane.</p>}
           </div>
@@ -235,6 +255,15 @@ export default function App() {
         {filtered.map(item=><button key={item.id} onClick={()=>add('Chat',item.id)}><Brand size={17}/><span><strong>{item.title}</strong><small>{item.description}</small></span><ArrowUpRight size={15}/></button>)}
         {filtered.length===0&&matchingSessions.length===0&&commands.length===0&&<p>No matching conversations, commands or examples.</p>}
       </div></section>}
+      {overlay==='shortcuts'&&<section aria-labelledby="keyboard-shortcuts-title">
+        <div className="modal-header"><Keyboard size={20}/><h2 id="keyboard-shortcuts-title">Keyboard shortcuts</h2><span className="grow"/><button className="icon-button" aria-label="Close keyboard shortcuts" onClick={()=>setOverlay(null)}><X size={18}/></button></div>
+        <dl className="shortcut-list">
+          <div><dt>Open command palette</dt><dd><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>K</kbd></dd></div>
+          <div><dt>Send a message</dt><dd><kbd>Enter</kbd></dd></div>
+          <div><dt>Insert a line break</dt><dd><kbd>Shift</kbd> + <kbd>Enter</kbd></dd></div>
+          <div><dt>Close a menu or dialog</dt><dd><kbd>Esc</kbd></dd></div>
+        </dl>
+      </section>}
       {overlay==='settings'&&<section><div className="modal-header"><Settings2 size={20}/><h2>Settings</h2><span className="grow"/><button className="icon-button" aria-label="Close settings" onClick={()=>setOverlay(null)}><X size={18}/></button></div><form className="settings-form" onSubmit={(event:FormEvent)=>event.preventDefault()}>
         {preferenceFields.map(([label,key,values])=><label key={key}><span>{label}</span><select value={preferences[key]} onChange={event=>setPreferences({...preferences,[key]:event.target.value})}>{values.map(value=><option key={value} value={value}>{value[0].toUpperCase()+value.slice(1)}</option>)}</select></label>)}
         <div className="settings-preview"><UpstreamLoading variant={preferences.thinking} label="Thinking indicator preview"/></div>

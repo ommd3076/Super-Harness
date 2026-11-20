@@ -16,6 +16,9 @@ test('all fixtures mount and the report workbench is interactive', async ({page}
   await mixed.getByRole('radio', {name:'Peak traffic'}).check();
   await mixed.getByText('Explore the report workbench').click();
   await expect(mixed.getByRole('heading', {name:'Measurement trace'})).toBeVisible();
-  await expect(mixed.getByRole('checkbox', {name:'Select Atlas Research'})).toBeVisible();
+  const records = mixed.getByLabel(/Companies table/);
+  await expect(records.getByRole('link', {name:'Atlas Research'})).toBeVisible();
+  await records.locator('label[title="Select Atlas Research"]').click();
+  await expect(records.getByRole('checkbox', {name:'Select Atlas Research'})).toBeChecked();
   expect(errors).toEqual([]);
 });

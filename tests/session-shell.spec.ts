@@ -14,6 +14,11 @@ test('keeps drafts and responses separate across split sessions and reloads', as
   await message.press('Enter');
   await expect(primary.getByRole('heading', { name: 'Which strings should this machine accept?' })).toBeVisible();
   await expect(primary.getByText('Local example ready')).toBeVisible();
+  await primary.getByLabel('Try a string').fill('aabb');
+  await primary.getByRole('button', { name:'Step', exact:true }).click();
+  await expect(primary.getByText(/1 \/ 4 symbols/)).toBeVisible();
+  await primary.getByRole('button', { name:'Trace', exact:true }).click();
+  await expect(primary.getByText('· accepted', {exact:true})).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('active-chat.png') });
   await message.fill('Primary draft');
 
@@ -25,10 +30,18 @@ test('keeps drafts and responses separate across split sessions and reloads', as
   await page.reload();
   await expect(message).toHaveValue('Primary draft');
   await expect(otherMessage).toHaveValue('Second draft');
+  await other.getByRole('button', { name:'Share context to split session' }).click();
+  const handoff = other.getByRole('complementary', { name:'Context from another session' });
+  await expect(handoff).toContainText('Make an interactive DFA');
+  await handoff.getByRole('button', { name:'Add to draft' }).click();
+  await expect(otherMessage).toHaveValue('Second draft\n\nMake an interactive DFA for strings ending in abb.');
   await otherMessage.fill('Help me check my understanding with a quiz.');
   await otherMessage.press('Enter');
   await expect(other.locator('.user-message')).toHaveText('Help me check my understanding with a quiz.');
   await expect(other.getByRole('heading', { name: 'Read the value, infer the type.' })).toBeVisible();
+  await other.getByRole('button', { name:/^C string$/ }).click();
+  await other.getByRole('button', { name:'Next question' }).click();
+  await expect(other.getByText('SCORE 1 / 4')).toBeVisible();
   await expect(message).toHaveValue('Primary draft');
   await page.screenshot({ path: testInfo.outputPath('split-session.png') });
   await other.getByRole('button', { name: 'Close split session' }).click();
@@ -43,5 +56,11 @@ test('keeps drafts and responses separate across split sessions and reloads', as
   await expect(page.locator('.app')).toHaveAttribute('data-composer', 'pill');
   await expect(page.locator('.app')).toHaveAttribute('data-motion', 'off');
   await palette.getByRole('button', { name: 'Close settings' }).click();
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+k' : 'Control+k');
+  await palette.getByRole('textbox').fill('shortcuts');
+  await palette.getByRole('button', { name:'Show keyboard shortcuts' }).click();
+  await expect(palette.getByRole('heading', { name:'Keyboard shortcuts' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(palette).toBeHidden();
   expect(errors).toEqual([]);
 });

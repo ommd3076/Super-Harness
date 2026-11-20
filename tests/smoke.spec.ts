@@ -11,7 +11,7 @@ test('desktop: preferences, persistent sessions and seeded interactive fixture',
   test.skip(testInfo.project.name !== 'desktop');
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.screenshot({ path: 'screenshots/desktop-home.png', fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath('desktop-home.png'), fullPage: true });
 
   await page.getByRole('button', { name: 'Settings' }).click();
   const settings = page.getByRole('dialog');
@@ -83,7 +83,7 @@ test('mobile: navigation, inspector and viewport have no horizontal overflow', a
   test.skip(testInfo.project.name !== 'mobile');
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.screenshot({ path: 'screenshots/mobile-home.png', fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath('mobile-home.png'), fullPage: true });
   const dimensions = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
   await page.getByRole('button', { name: 'Open navigation' }).click();

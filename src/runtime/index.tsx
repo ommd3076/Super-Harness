@@ -175,7 +175,10 @@ function RuntimeInstance({ definition, sessionId, instanceId, onEvent, storageKe
     if (node.type === 'chart') return <ParameterChart key={id} title={prompt} points={node.points} multiplier={numeric(values[node.binding ?? ''],100)/100}/>;
     if (node.type === 'diagram') return <WorkflowDiagram key={id} title={prompt} blocks={node.blocks}/>;
     if (node.type === 'table') return <DataTable key={id} title={prompt} data={node.data} columns={node.columns} editable={node.editable} cell={(row, col) => text(values[`${id}:${row}:${col}`] ?? node.data[row][col], 200)} onCell={(row, col, value) => update(`${id}:${row}:${col}`, value)}/>;
-    if (node.type === 'artifact' || node.type === 'mini-app') return <ArtifactPreview key={id} title={prompt} content={text(values[node.binding ?? ''] ?? node.value)} isolated={node.type === 'mini-app'}/>;
+    if (node.type === 'artifact' || node.type === 'mini-app') {
+      const binding = node.binding;
+      return <ArtifactPreview key={id} title={prompt} content={text(values[binding ?? ''] ?? node.value)} isolated={node.type === 'mini-app'} versionKey={`${storageKey}:versions:${id}`} onRestore={binding ? value=>update(binding,value) : undefined}/>;
+    }
     if (node.type === 'approval') return <LocalApproval key={id} title={prompt} value={text(values[id])} onDecision={decision=>update(id,decision,'approval.decide')}/>;
     if (['stack','column','row','grid','card','panel','group','section','steps'].includes(type)) {
       const className = type === 'row' ? 'iu-row' : type === 'grid' ? 'iu-grid' : ['card','panel'].includes(type) ? 'iu-card' : type === 'section' ? 'iu-section' : 'iu-stack';
