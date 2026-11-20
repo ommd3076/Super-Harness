@@ -19,6 +19,7 @@ test('keeps drafts and responses separate across split sessions and reloads', as
   await expect(primary.getByText(/1 \/ 4 symbols/)).toBeVisible();
   await primary.getByRole('button', { name:'Trace', exact:true }).click();
   await expect(primary.getByText('· accepted', {exact:true})).toBeVisible();
+  await expect(primary.getByRole('button', {name:'+2 more',exact:true})).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath('active-chat.png') });
   await message.fill('Primary draft');
 

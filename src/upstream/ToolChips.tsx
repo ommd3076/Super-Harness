@@ -36,12 +36,10 @@ export type ToolDiffLine = { text: string; tone: "add" | "del" | "ctx" };
 
 export type ToolChipsLabels = {
   header: string;
-  more: string;
 };
 
 const DEFAULT_LABELS: ToolChipsLabels = {
   header: "4 tool calls, 2 messages",
-  more: "+2 more",
 };
 
 const ROWS: ToolStep[] = [
@@ -250,7 +248,7 @@ export default function ToolChips({
         </div>
 
       {/* file-diff chips */}
-      {step >= total && (
+      {step >= total && diffs.length > 0 && (
         <div className="mt-2.5 flex max-w-full flex-wrap gap-1.5 border-t border-line pt-2.5">
           {diffs.map((d, i) => (
             <span
@@ -278,15 +276,6 @@ export default function ToolChips({
 
             </span>
           ))}
-          <button
-            type="button"
-            className="inline-flex h-7 items-center rounded-chip px-1.5 font-mono text-[11.5px] text-ink-3
-              underline decoration-transparent underline-offset-2 transition-colors duration-100
-              hover:text-ink-2 hover:decoration-current"
-            style={{ animation: `fade-in 300ms ease-out ${diffs.length * 80}ms both` }}
-          >
-            {copy.more}
-          </button>
         </div>
       )}
         </div>

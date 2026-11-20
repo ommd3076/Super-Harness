@@ -46,7 +46,7 @@ function Mixed({sessionId,instanceId,onInspect}:SceneProps) {
       <UpstreamCode filename="queries/error-rate.promql" lines={['sum(rate(http_requests_total{status=~"5.."}[5m]))', '/ sum(rate(http_requests_total[5m]))']}/>
       <UpstreamContext labels={{header:'Measurement context',count:'1'}} chunks={[{title:'Request counters',chars:'Local fixture',body:'Compare the 5xx counter with all requests over the same window.',source:'Service telemetry fixture',badge:'Example',tone:'green'}]}/>
       <UpstreamTasks rows={taskRows.map(row=>({...row,details:[...row.details]}))}/>
-      <UpstreamTools labels={{header:'Local activity',more:'More details'}} steps={[{icon:'read',label:'Read comparison inputs',chip:'Service measurement',mono:false,detailMono:false,detail:[{text:'Loaded the bundled request-counter fixture.'}]}]} diffs={[]} diffLines={{}}/>
+      <UpstreamTools labels={{header:'Local activity'}} steps={[{icon:'read',label:'Read comparison inputs',chip:'Service measurement',mono:false,detailMono:false,detail:[{text:'Loaded the bundled request-counter fixture.'}]}]} diffs={[]} diffLines={{}}/>
       <section aria-label="Draft approval">
         {decision?<p role="status">{decision} <button type="button" className="reset-button" onClick={()=>choose('')}>Review again</button></p>:<UpstreamReview questions={reviewQuestions.map(question=>({...question,options:[...question.options]}))} labels={{sentMessage:'Local decision recorded',send:'Record decision'}} onSubmitted={answers=>choose(answers[0]?.includes(0)?'Approved in this demo':answers[0]?.includes(1)?'Changes requested':'No decision recorded')}/>}
       </section>
