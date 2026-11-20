@@ -1,0 +1,47 @@
+import { expect, test } from '@playwright/test';
+
+test('keeps drafts and responses separate across split sessions and reloads', async ({ page }, testInfo) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  const primary = page.getByRole('main');
+  await expect(primary.getByRole('heading', { name: 'What’s on your mind?' })).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: testInfo.outputPath('empty-chat.png') });
+
+  const message = primary.getByRole('textbox', { name: 'Message' });
+  await message.fill('Make an interactive DFA for strings ending in abb.');
+  await message.press('Enter');
+  await expect(primary.getByRole('heading', { name: 'Which strings should this machine accept?' })).toBeVisible();
+  await expect(primary.getByText('Local example ready')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('active-chat.png') });
+  await message.fill('Primary draft');
+
+  await page.getByRole('button', { name: 'Split workspace', exact: true }).click();
+  const other = page.getByRole('complementary', { name: 'Split session' });
+  const otherMessage = other.getByRole('textbox', { name: 'Message' });
+  await otherMessage.fill('Second draft');
+  await expect(message).toHaveValue('Primary draft');
+  await page.reload();
+  await expect(message).toHaveValue('Primary draft');
+  await expect(otherMessage).toHaveValue('Second draft');
+  await otherMessage.fill('Help me check my understanding with a quiz.');
+  await otherMessage.press('Enter');
+  await expect(other.locator('.user-message')).toHaveText('Help me check my understanding with a quiz.');
+  await expect(other.getByRole('heading', { name: 'Read the value, infer the type.' })).toBeVisible();
+  await expect(message).toHaveValue('Primary draft');
+  await page.screenshot({ path: testInfo.outputPath('split-session.png') });
+  await other.getByRole('button', { name: 'Close split session' }).click();
+  await expect(other).toHaveCount(0);
+
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+k' : 'Control+k');
+  const palette = page.getByRole('dialog');
+  await palette.getByRole('textbox').fill('appearance');
+  await palette.getByRole('button', { name: 'Open appearance settings' }).click();
+  await palette.getByLabel('Composer shape').selectOption('Pill');
+  await palette.getByLabel('Motion').selectOption('Off');
+  await expect(page.locator('.app')).toHaveAttribute('data-composer', 'pill');
+  await expect(page.locator('.app')).toHaveAttribute('data-motion', 'off');
+  await palette.getByRole('button', { name: 'Close settings' }).click();
+  expect(errors).toEqual([]);
+});

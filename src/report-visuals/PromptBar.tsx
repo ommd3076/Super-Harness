@@ -101,6 +101,18 @@ const MODELS = [
 const FILES = ["request-counters.csv", "release-summary.md", "latency-snapshot.csv"];
 const DICTATION = "Compare this release against last week";
 
+type LocalComposer = {
+  draft: string;
+  model: string;
+  attachments: string[];
+  busy: boolean;
+  onDraft: (draft: string) => void;
+  onModel: (model: string) => void;
+  onAttachments: (attachments: string[]) => void;
+  onSend: () => void;
+  onVoice: () => void;
+};
+
 /* self-running demo: walk the @ menu, then the / menu, and repeat.
  * Any pointer or key interaction hands control to the user. */
 const AUTO_STEPS: {
@@ -145,6 +157,7 @@ export default function PromptBar({
   tall = false,
   placeholder,
   onSend,
+  local,
 }: {
   variant?: string;
   /** the self-running walkthrough; turn off when embedding in a real surface */
@@ -153,14 +166,20 @@ export default function PromptBar({
   tall?: boolean;
   placeholder?: string;
   onSend?: (text: string) => void;
+  local?: LocalComposer;
 }) {
   const pill = variant === "Pill";
-  const [draft, setDraft] = useState("");
+  const [internalDraft, setInternalDraft] = useState("");
+  const draft = local?.draft ?? internalDraft;
+  const setDraft = local?.onDraft ?? setInternalDraft;
   const [dismissed, setDismissed] = useState(false);
   const [plusOpen, setPlusOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
-  const [model, setModel] = useState(MODELS[1]);
-  const [attachments, setAttachments] = useState<string[]>([]);
+  const [internalModel, setModel] = useState(MODELS[1]);
+  const model = local ? MODELS.find(option => option.name === local.model) ?? MODELS[1] : internalModel;
+  const [internalAttachments, setInternalAttachments] = useState<string[]>([]);
+  const attachments = local?.attachments ?? internalAttachments;
+  const setAttachments = local?.onAttachments ?? setInternalAttachments;
   const [connected, setConnected] = useState(false);
   const [active, setActive] = useState(0);
   const [listening, setListening] = useState(false);
@@ -184,6 +203,8 @@ export default function PromptBar({
   const glimmRef = useRef<HTMLCanvasElement>(null);
   const shaderRef = useRef<ReturnType<typeof createShader> | null>(null);
   const sweepingRef = useRef(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   /* hand control to the user: stop the demo loop, and when they aim at
    * the input itself, clear the demo's leftover draft for a clean start */
@@ -299,9 +320,10 @@ export default function PromptBar({
   };
 
   const selectModel = (next: (typeof MODELS)[number]) => {
-    setModel(next);
+    if (local) local.onModel(next.name);
+    else setModel(next);
     setModelOpen(false);
-    if (next.key === "sprinkles-5") celebrate();
+    if (next.key === "sprinkles-5" && !rootRef.current?.closest('[data-motion="off"]')) celebrate();
   };
 
   /* autoplay: apply the current step, then advance after its hold */
@@ -324,7 +346,7 @@ export default function PromptBar({
   useEffect(() => {
     if (!listening) return;
     const t = setTimeout(() => {
-      setDraft((current) => (current ? `${current.trimEnd()} ${DICTATION}` : DICTATION));
+      setInternalDraft((current) => (current ? `${current.trimEnd()} ${DICTATION}` : DICTATION));
       setListening(false);
       inputRef.current?.focus();
     }, 2200);
@@ -359,7 +381,7 @@ export default function PromptBar({
   useEffect(() => {
     if (!modelOpen && !plusOpen) return;
     const close = (event: PointerEvent) => {
-      if (!(event.target as Element).closest("[data-promptbar]")) {
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) {
         setModelOpen(false);
         setPlusOpen(false);
       }
@@ -376,7 +398,8 @@ export default function PromptBar({
   const pick = (row: { key: string; name: string }) => {
     const source = SOURCES.find((s) => s.key === row.key);
     if (source?.attach) {
-      setAttachments((current) => [...current, FILES[current.length % FILES.length]]);
+      if (local) fileInput.current?.click();
+      else setAttachments([...attachments, FILES[attachments.length % FILES.length]]);
       if (token) setDraft(draft.slice(0, token.start));
     } else if (menu === "at") {
       setDraft(`${token ? draft.slice(0, token.start) : draft}@${row.name} `);
@@ -388,22 +411,31 @@ export default function PromptBar({
     inputRef.current?.focus();
   };
 
-  const canSend = draft.trim().length > 0 || attachments.length > 0;
+  const canSend = !local?.busy && (draft.trim().length > 0 || attachments.length > 0);
   const send = () => {
     if (!canSend) return;
-    onSend?.(draft.trim());
-    setDraft("");
-    setAttachments([]);
+    if (local) local.onSend();
+    else {
+      onSend?.(draft.trim());
+      setDraft("");
+      setAttachments([]);
+    }
     closeMenus();
   };
 
   return (
     <div
+      ref={rootRef}
       data-promptbar
       className={demo ? "flex min-h-[384px] w-full max-w-105 flex-col justify-end pb-8" : "w-full"}
       onPointerDownCapture={takeOver}
       onKeyDownCapture={takeOver}
     >
+      {local && <input ref={fileInput} type="file" multiple hidden aria-label="Attach files" onChange={event => {
+        const files = Array.from(event.target.files ?? [], file => file.name);
+        setAttachments([...new Set([...attachments, ...files])]);
+        event.target.value = "";
+      }}/>}
       {/* composer is the anchor — menus grow up from its top edge */}
       <div ref={composerAnchorRef} className="relative">
       {/* ── @ / slash menu ─────────────────────────────── */}
@@ -448,9 +480,9 @@ export default function PromptBar({
                   </span>
                 )}
                 <span className="shrink-0 text-[12.5px] font-medium text-ink">
-                  {row.name}
+                  {local && source?.attach ? "Attach files" : row.name}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-[12px] text-ink-3">{row.desc}</span>
+                <span className="min-w-0 flex-1 truncate text-[12px] text-ink-3">{local && source?.attach ? "Add names to this prompt" : row.desc}</span>
                 {source?.connect && (
                   <span
                     role="button"
@@ -564,7 +596,7 @@ export default function PromptBar({
                 <button
                   type="button"
                   aria-label={`Remove ${file}`}
-                  onClick={() => setAttachments((current) => current.filter((_, j) => j !== i))}
+                  onClick={() => setAttachments(attachments.filter((_, j) => j !== i))}
                   className={`-my-1 flex size-6 items-center justify-center text-ink-3 transition-colors duration-100 hover:bg-line/70 hover:text-ink ${
                     pill ? "rounded-full" : "rounded-[5px]"
                   }`}
@@ -634,7 +666,7 @@ export default function PromptBar({
               }
             }}
             placeholder={listening ? "Listening…" : placeholder ?? "Write a message…"}
-            aria-label="Prompt"
+            aria-label={local ? "Message" : "Prompt"}
             className={`${tall ? "min-h-[68px] px-2 py-2 text-[14px] leading-5" : "min-h-7 px-1 py-[5px] text-[13px] leading-[18px]"} min-w-0 w-full resize-none bg-transparent text-ink outline-none [overflow-wrap:anywhere] placeholder:text-ink-3 ${
               wide ? "col-span-full col-start-1 row-start-1" : "col-start-2 row-start-1"
             }`}
@@ -663,9 +695,9 @@ export default function PromptBar({
           {/* dictation */}
           <button
             type="button"
-            aria-label={listening ? "Stop dictation" : "Start dictation"}
-            aria-pressed={listening}
-            onClick={() => setListening((current) => !current)}
+            aria-label={local ? "Open Live" : listening ? "Stop dictation" : "Start dictation"}
+            aria-pressed={local ? undefined : listening}
+            onClick={() => local ? local.onVoice() : setListening((current) => !current)}
             className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-150 active:scale-[0.94] ${
               pill ? "rounded-full" : "rounded-[8px]"
             } ${listening ? "bg-accent-tint text-accent-ink" : "text-ink-3 hover:bg-hover hover:text-ink"} ${wide ? "col-start-4 row-start-2" : "col-start-4 row-start-1"}`}
@@ -688,7 +720,7 @@ export default function PromptBar({
           {/* send — tactile square (round in the pill variant) */}
           <button
             type="button"
-            aria-label="Send"
+            aria-label={local ? "Send message" : "Send"}
             disabled={!canSend}
             onClick={send}
             className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.94] ${
