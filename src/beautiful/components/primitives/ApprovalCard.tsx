@@ -189,13 +189,11 @@ export default function ApprovalCard({
     measured.current = true;
     sync(withAnim);
     setReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qi, answers, custom, open, sent]);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => sync(measured.current));
     return () => cancelAnimationFrame(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qi]);
 
   useEffect(() => () => { if (advanceTimer.current) clearTimeout(advanceTimer.current); }, []);

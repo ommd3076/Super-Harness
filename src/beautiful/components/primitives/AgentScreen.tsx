@@ -84,7 +84,6 @@ function Screen({ streamSrc, cursor = true }: { streamSrc?: string; cursor?: boo
         /\.(mp4|webm|mov|m4v)(\?|$)/i.test(streamSrc) ? (
           <video src={streamSrc} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={streamSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />
         )
       ) : (
@@ -103,7 +102,6 @@ function MediaSizer({ src }: { src: string }) {
   return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src) ? (
     <video src={src} autoPlay muted loop playsInline className={cls} style={style} />
   ) : (
-    // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt="" className={cls} style={style} />
   );
 }

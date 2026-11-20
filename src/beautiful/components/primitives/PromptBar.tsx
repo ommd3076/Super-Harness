@@ -271,7 +271,6 @@ export default function PromptBar({
       shaderRef.current?.destroy();
       shaderRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const celebrate = () => {

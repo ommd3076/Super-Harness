@@ -130,7 +130,6 @@ export default function StreamingText({
       done ? HOLD_MS : WORD_MS,
     );
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count, done, loop]);
 
   return (
